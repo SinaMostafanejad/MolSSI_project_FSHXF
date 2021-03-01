@@ -17,8 +17,9 @@ Copyright (c) 2021, Patricia Vindel Zandbergen
 Project based on the 
 [Computational Molecular Science Python Cookiecutter](https://github.com/molssi/cookiecutter-cms) version 1.5.
 
-This repository is currently under development. To do a developmental install, download this repository and type
+This repository is currently under development. To do a developmental install, download this repository and type`pip install -e .` in the repository directory.
 
-`pip install -e .`
-
-in the repository directory.
+This package requires the following:
+-Python 3.6 (or newer)
+-Numpy
+-Cython https://cython.org
