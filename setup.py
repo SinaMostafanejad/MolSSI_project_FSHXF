@@ -1,59 +1,22 @@
-"""
-MolSSI_FSHXF
-A Python package to study laser driven non adiabatic dynamics with mixed quantum-classical methods based on the Exact Factorization approach
-"""
-import sys
-from setuptools import setup, find_packages
-import versioneer
+from distutils.core import setup
+from distutils.extension import Extension
+from Cython.Distutils import build_ext
 
-short_description = __doc__.split("\n")
+import numpy as np
 
-# from https://github.com/pytest-dev/pytest-runner#conditional-requirement
-needs_pytest = {'pytest', 'test', 'ptr'}.intersection(sys.argv)
-pytest_runner = ['pytest-runner'] if needs_pytest else []
+sourcefile1 = ["./src/mqc/el_prop/el_propagator.pyx", "./src/mqc/el_prop/rk4.c"]
+sourcefile2 = ["./src/mqc/el_prop/el_propagator_xf.pyx", "./src/mqc/el_prop/rk4_xf.c"]
+sourcefile3 = ["./src/mqc/el_prop/el_propagator_ct.pyx", "./src/mqc/el_prop/rk4_ct.c"]
+sourcefile4 = ["./src/qm/cioverlap/cioverlap.pyx", "./src/qm/cioverlap/tdnac.c"]
 
-try:
-    with open("README.md", "r") as handle:
-        long_description = handle.read()
-except:
-    long_description = "\n".join(short_description[2:])
-
+extensions = [
+    Extension("el_propagator", sources=sourcefile1, include_dirs=[np.get_include()]),
+    Extension("el_propagator_xf", sources=sourcefile2, include_dirs=[np.get_include()]),
+    Extension("el_propagator_ct", sources=sourcefile3, include_dirs=[np.get_include()]),
+    Extension("cioverlap", sources=sourcefile4, include_dirs=[np.get_include()])
+]
 
 setup(
-    # Self-descriptive entries which should always be present
-    name='molssi_fshxf',
-    author='Patricia Vindel Zandbergen',
-    author_email='pv208@newark.rutgers.edu',
-    description=short_description[0],
-    long_description=long_description,
-    long_description_content_type="text/markdown",
-    version=versioneer.get_version(),
-    cmdclass=versioneer.get_cmdclass(),
-    license='BSD-3-Clause',
-
-    # Which Python importable modules should be included when your package is installed
-    # Handled automatically by setuptools. Use 'exclude' to prevent some specific
-    # subpackage(s) from being added, if needed
-    packages=find_packages(),
-
-    # Optional include package data to ship with your package
-    # Customize MANIFEST.in if the general case does not suit your needs
-    # Comment out this line to prevent the files from being packaged with your software
-    include_package_data=True,
-
-    # Allows `setup.py test` to work correctly with pytest
-    setup_requires=[] + pytest_runner,
-
-    # Additional entries you may want simply uncomment the lines you want and fill in the data
-    # url='http://www.my_package.com',  # Website
-    # install_requires=[],              # Required packages, pulls from pip if needed; do not use for Conda deployment
-    # platforms=['Linux',
-    #            'Mac OS-X',
-    #            'Unix',
-    #            'Windows'],            # Valid platforms your code works on, adjust to your flavor
-    # python_requires=">=3.5",          # Python version restrictions
-
-    # Manual control if final package is compressible or not, set False to prevent the .egg from being made
-    # zip_safe=False,
-
+    cmdclass = {"build_ext": build_ext},
+    ext_modules = extensions
 )
