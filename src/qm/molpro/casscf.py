@@ -122,7 +122,7 @@ class CASSCF(Molpro):
         # Scratch Block
         if (self.guess == "read"):
             wfu_dir = os.path.join(self.scr_qm_dir, "wfu")
-            os.makedirs(wfu_dir)
+            os.makedirs(wfu_dir,exist_ok=True)
             if (istep == -1):
                 if (os.path.isfile(self.guess_file)):
                     # Copy guess file to currect directory
