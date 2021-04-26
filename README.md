@@ -7,7 +7,7 @@ MolSSI_FSHXF
 
 A Python package to study laser driven non adiabatic dynamics with mixed quantum-classical methods based on the Exact Factorization approach
 
-### Copyright
+### Copyright for My Fork
 
 Copyright (c) 2021, Patricia Vindel Zandbergen
 
