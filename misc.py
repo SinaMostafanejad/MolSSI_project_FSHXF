@@ -45,6 +45,7 @@ c = 137.035999108108
 
 # Frequency unit
 cm_to_au = 1.0E-8 * au_to_A * c
+nm_to_au = 455.71
 
 eps = 1.0E-12
 

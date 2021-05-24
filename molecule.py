@@ -16,7 +16,8 @@ class State(object):
         self.force = np.zeros((nat, ndim))
         self.coef = 0. + 0.j
         self.multiplicity = 1
-
+ 
+        self.force_laser= 
 
 class Molecule(object):
     """ Class for a molecule object including State objects
@@ -99,10 +100,16 @@ class Molecule(object):
         self.socme = np.zeros((self.nst, self.nst), dtype=np.complex_)
         self.socme_old = np.zeros((self.nst, self.nst), dtype=np.complex_)
 
+        self.nacme_laser = np.zeros((self.nst, self.nst))
+        self.nacme_old_laser = np.zeros((self.nst, self.nst))
+
         # Initialize other properties
         self.nac = np.zeros((self.nst, self.nst, self.nat_qm, self.ndim))
         self.nac_old = np.zeros((self.nst, self.nst, self.nat_qm, self.ndim))
         self.rho = np.zeros((self.nst, self.nst), dtype=np.complex_)
+       
+        self.nac_laser = np.zeros((self.nst, self.nst, self.nat_qm, self.ndim))
+        self.nac_old_laser = np.zeros((self.nst, self.nst, self.nat_qm, self.ndim))
 
         self.ekin = 0.
         self.ekin_qm = 0.
@@ -217,6 +224,8 @@ class Molecule(object):
             for jst in range(ist + 1, self.nst):
                 self.nacme[ist, jst] = np.sum(self.nac[ist, jst] * self.vel[0:self.nat_qm])
                 self.nacme[jst, ist] = - self.nacme[ist, jst]
+                self.nacme_laser[ist,jst] = np.sum(self.nac_laser[ist,jst]
+                self.nacme_laser[jst, ist] = - self.nacme_laser[ist, jst]
 
     def update_kinetic(self):
         """ Get kinetic energy
@@ -238,11 +247,16 @@ class Molecule(object):
             states.energy = 0.
             states.force = np.zeros((self.nat, self.ndim))
 
+            states.energy_laser = 0.
+            states.force_laser = np.zeros((self.nat, self.ndim))
+
         if (calc_coupling):
             if (self.l_nacme):
                 self.nacme = np.zeros((self.nst, self.nst))
+                self.nacme_laser = np.zeros((self.nst,self.nst))
             else:
                 self.nac = np.zeros((self.nst, self.nst, self.nat_qm, self.ndim))
+                self.nac_laser = np.zeros((self.nst, self.nst, self.nat_qm, self.ndim))
 
     def backup_bo(self):
         """ Backup BO energies and nonadiabatic couplings
@@ -251,6 +265,10 @@ class Molecule(object):
             states.energy_old = states.energy
         self.nac_old = np.copy(self.nac)
         self.nacme_old = np.copy(self.nacme)
+
+            states.energy_old_laser = states.energy_laser
+        self.nac_old_laser = np.copy(self_nac_laser)
+        self.nacme_old_laser = np.copy(self.nacme_laser)
 
     def get_nr_electrons(self):
         """ Get the number of electrons

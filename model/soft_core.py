@@ -1,11 +1,11 @@
-from __future__ import division
+rom __future__ import division
 from qm.model.model import Model
 import numpy as np
 from math import erf
-from misc import eps
+from misc import eps, au_to_fs, fs_to_au
 
-class Shin_Metiu(Model):
-    """ Class for 1D Shin-Metiu model BO calculation in a real-space grid
+class Soft_Core(Model):
+    """ Class for 1D soft-core model BO calculation in a real-space grid
 
         :param object molecule: molecule object
         :param integer nx: the number of grid points
@@ -16,33 +16,34 @@ class Shin_Metiu(Model):
         :param double Rl: the parameter of a fixed nucleus in the left side
         :param double Rr: the parameter of a fixed nucleus in the right side
     """
-    def __init__(self, molecule, nx=401, xmin=-20.0, xmax=20.0, L=19.0, Rc=5.0, Rl=4.0, Rr=3.1):
+    def __init__(self, molecule, nx=401, xmin=-20.0, xmax=20.0, E0=0.0093, omega=0.057, tau = 4.8, delta_t=7):
         # Initialize model common variables
-        super(Shin_Metiu, self).__init__(None)
+        super(Soft_Core, self).__init__(None)
 
         # Set the grid
         self.nx = nx
         self.xmin = xmin
         self.xmax = xmax
 
-        # Parameters in au
-        self.L = L + eps
-        self.Rc = Rc
-        self.Rl = Rl
-        self.Rr = Rr
 
         self.dx = (self.xmax - self.xmin) / np.float(self.nx - 1)
         self.H = np.zeros((self.nx, self.nx))
 
+        #Set the laser parameters
+        self.E0 = E0
+        self.omega = omega
+        self.tau = tau
+        self.delta_t = delta_t
+
         # Set 'l_nacme' with respect to the computational method
-        # Shin-Metiu model can produce NACs, so we do not need to get NACME
+        # Soft-Core model can produce NACs, so we do not need to get NACME
         molecule.l_nacme = False
 
-        # Shin-Metiu model can compute the gradient of several states simultaneously
+        # Soft-Core model can compute the gradient of several states simultaneously
         self.re_calc = False
 
     def get_data(self, molecule, base_dir, bo_list, dt, istep, calc_force_only):
-        """ Extract energy, gradient and nonadiabatic couplings from Shin-Metiu BO calculation
+        """ Extract energy, gradient and nonadiabatic couplings from Soft-Core BO calculation
 
             :param object molecule: molecule object
             :param string base_dir: base directory
@@ -63,6 +64,7 @@ class Shin_Metiu(Model):
         # Add the potential contribution (diagonal)
         xes = [self.xmin + ix * self.dx for ix in range(self.nx)]
         Vs = [self.get_V(x, xe) for xe in xes]
+        Vlass = [self.get_Vlas(x, xe) for xe in xes]
         self.H += np.diag(Vs)
 
         # Diagonalization
@@ -99,16 +101,11 @@ class Shin_Metiu(Model):
             :param double x: the nuclear position
             :param double xe: the electronic position
         """
-        RR = np.abs(x - xe)
 
-        if (RR > eps):
-            V = - erf(RR / self.Rc) / RR
-        else:
-            V = - 2. / (np.sqrt(np.pi) * self.Rc)
 
-        V += - erf(np.abs(xe - 0.5 * self.L) / self.Rr) / np.abs(xe - 0.5 * self.L) - \
-            erf(np.abs(xe + 0.5 * self.L) / self.Rl) / np.abs(xe + 0.5 * self.L) + \
-            1. / np.abs(x - 0.5 * self.L) + 1. / np.abs(x + 0.5 * self.L)
+        V  =  1. / (x + 0.03)**2. - 1. / np.sqrt((xe - x/2.)**2. + 1. ) - \
+                1. / np.sqrt((xe + x/2.)**2. + 1. ) 
+ 
 
         return V
 
@@ -118,16 +115,39 @@ class Shin_Metiu(Model):
             :param double x: the nuclear position
             :param double xe: the electronic position
         """
-        RR = np.abs(x - xe)
- 
-        if (RR > eps):
-            dV = (x - xe) * erf(RR / self.Rc) / RR ** 3 - \
-                2. * (x - xe) * np.exp(- RR ** 2 / self.Rc ** 2) / np.sqrt(np.pi) / self.Rc / RR ** 2
-        else:
-            dV = 0.
+        dV = 0.5 * (x/2. - xe) * ((xe - x /2.)**2. + 1. )**(-1.5) + \
+            0.5 * (x/2. + xe) * ((xe + x/2.)**2.+1)**(-1.5) -  \
+            x * (x**2 + 0.03)**(-1.5)
 
-        dV -= (np.abs(x - 0.5 * self.L) ** (- 3)) * (x - 0.5 * self.L) + \
-            (np.abs(x + 0.5 * self.L) ** (- 3)) * (x + 0.5 * self.L)
 
         return dV
+
+
+    def get_Vlas(self, x, xe):
+        """ Calculate potential elements of the BO Hamiltonian
+ 
+            :param double x: the nuclear position
+            :param double xe: the electronic position
+        """
+ 
+ 
+        Vlas=   1. / (x + 0.03)**2. - 1. / np.sqrt((xe - x/2.)**2. + 1. ) - \
+                 1. / np.sqrt((xe + x/2.)**2. + 1. ) + \
+                 xe * E0 * exp ((-istep*dt/tau)**2)*cos(omega*istep-deltat)
+ 
+        return Vlas
+
+
+    def get_dVlas(self, x, xe):
+        """ Calculate del potential elements of the BO Hamiltonian
+        
+            :param double x: the nuclear position
+            :param double xe: the electronic position
+        """
+        dVlas = 0.5 * (x/2. - xe) * ((xe - x /2.)**2. + 1. )**(-1.5) + \
+            0.5 * (x/2. + xe) * ((xe + x/2.)**2.+1)**(-1.5) -  \
+            x * (x**2 + 0.03)**(-1.5)
+            
+            
+        return dVlas
 
