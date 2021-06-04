@@ -40,12 +40,13 @@ eV_to_au = 1 / au_to_eV # = 0.03674931
 au_to_kcalmol = 627.503
 kcalmol_to_au = 1 / au_to_kcalmol # = 0.00159362
 
+
 # Speed of light in atomic unit
 c = 137.035999108108 
 
 # Frequency unit
 cm_to_au = 1.0E-8 * au_to_A * c
-nm_to_au = 455.71
+nm_to_au = 45.571
 
 eps = 1.0E-12
 
